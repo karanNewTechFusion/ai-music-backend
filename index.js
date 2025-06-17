@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/users', userRoutes);
 app.use('/audio', audioRoutes);
-app.use('/', response.send('Welcome to the AI Music Backend!'));
+app.use('/', response.send('Welcome to the AI Music Backend!.....'));
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
