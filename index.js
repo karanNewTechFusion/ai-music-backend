@@ -13,10 +13,12 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.get('/', (req, res) => {
+  res.json({ message: 'API working ✅' });
+});
 app.use('/api/users', userRoutes);
 app.use('/audio', audioRoutes);
-app.use('/', response.send('Welcome to the AI Music Backend!.....'));
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
