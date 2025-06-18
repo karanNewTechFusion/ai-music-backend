@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 5000;
 
 // app.use(cors());
 app.use(cors({
-  origin: ['http://localhost:8080', 'https://devinfotech.site/'],
+  origin: ['http://localhost:8080', 'https://devinfotech.site'],
   credentials: true,
 }));
 app.use(express.json());
