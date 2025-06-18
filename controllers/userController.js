@@ -1,13 +1,15 @@
+
 import supabase from '../services/supabaseClient.js';
+import { sendResponse } from '../utility/responseHelper.js';
 
+// ✅ SIGNUP
 export const signUpUser = async (req, res) => {
-  console.log("in side the signUpUser controller");
-  console.log("Body:", req.body);
-
   const { email, password } = req.body;
+
   if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required" });
+    return sendResponse(res, false, 400, "Email and password are required");
   }
+
   try {
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
@@ -15,26 +17,22 @@ export const signUpUser = async (req, res) => {
     });
 
     if (error) {
-      console.error("Supabase Error:", error.message);
-      return res.status(400).json({ error: error.message });
+      return sendResponse(res, false, 400, error.message);
     }
 
-    res.status(200).json({ user: data.user });
+    return sendResponse(res, true, 200, "User signed up successfully", { user: data.user });
   } catch (err) {
-    console.error("Server Error:", err.message);
-    res.status(500).json({ error: "Server error" });
+    return sendResponse(res, false, 500, "Server error");
   }
 };
 
-
+// ✅ LOGIN
 export const loginUser = async (req, res) => {
-  console.log("Inside loginUser controller");
-  console.log("Body:", req.body);
-
+  console.log("🔐 [loginUser] Request body:", req.body);
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required" });
+    return sendResponse(res, false, 400, "Email and password are required");
   }
 
   try {
@@ -44,42 +42,39 @@ export const loginUser = async (req, res) => {
     });
 
     if (error) {
-      console.error("Login Error:", error.message);
-      return res.status(401).json({ error: error.message });
+      return sendResponse(res, false, 401, error.message);
     }
 
-    res.status(200).json({
+    return sendResponse(res, true, 200, "Login successful", {
       user: data.user,
-      session: data.session, 
+      session: data.session,
     });
   } catch (err) {
-    console.error("Server Error:", err.message);
-    res.status(500).json({ error: "Server error" });
+    return sendResponse(res, false, 500, "Server error");
   }
 };
 
+// ✅ REFRESH TOKEN
 export const refreshUserSession = async (req, res) => {
-  console.log("Inside refreshUserSession controller");
   const { refresh_token } = req.body;
 
   if (!refresh_token) {
-    return res.status(400).json({ error: "Refresh token is required" });
+    return sendResponse(res, false, 400, "Refresh token is required");
   }
 
   try {
     const { data, error } = await supabase.auth.refreshSession({ refresh_token });
 
     if (error) {
-      console.error("Refresh Error:", error.message);
-      return res.status(401).json({ error: error.message });
+      
+      return sendResponse(res, false, 401, error.message);
     }
 
-    res.status(200).json({
+    return sendResponse(res, true, 200, "Session refreshed", {
       user: data.user,
       session: data.session,
     });
   } catch (err) {
-    console.error("Server Error:", err.message);
-    res.status(500).json({ error: "Server error" });
+    return sendResponse(res, false, 500, "Server error");
   }
 };
