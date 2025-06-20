@@ -268,10 +268,10 @@ function convertToMp3(buffer) {
 export const saveAudio = async (req, res) => {
   try {
     const { file } = req;
-    const { title } = req.body;
+    const { title, user_id } = req.body; // ✅ also get user_id from frontend
 
-    if (!file || !title) {
-      return sendResponse(res, false, 400, 'Audio file and title are required');
+    if (!file || !title || !user_id) {
+      return sendResponse(res, false, 400, 'Audio file, title, and user ID are required');
     }
 
     const mp3Buffer = await convertToMp3(file.buffer);
@@ -291,7 +291,7 @@ export const saveAudio = async (req, res) => {
 
     const { error: insertError } = await supabase
       .from('audios')
-      .insert([{ title, url: publicUrl }]);
+      .insert([{ title, url: publicUrl, user_id }]); // ✅ store user_id also
 
     if (insertError) {
       return sendResponse(res, false, 500, 'Metadata save failed', { error: insertError.message });
@@ -300,11 +300,13 @@ export const saveAudio = async (req, res) => {
     return sendResponse(res, true, 200, 'Audio uploaded successfully', {
       title,
       url: publicUrl,
+      user_id, // ✅ optional: return it back to frontend too
     });
   } catch (err) {
     return sendResponse(res, false, 500, 'Internal server error', { error: err.message });
   }
 };
+
 
 // Download audio
 export const downloadAudio = async (req, res) => {
