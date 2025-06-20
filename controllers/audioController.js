@@ -265,19 +265,91 @@ function convertToMp3(buffer) {
 }
 
 // Save audio
+// export const saveAudio = async (req, res) => {
+//   try {
+//     const { file } = req;
+//     const { title, user_id } = req.body; // ✅ also get user_id from frontend
+//     console.log("Request Body::::::::::::", req.body);
+
+
+//     if (!file || !title || !user_id) {
+//       return sendResponse(res, false, 400, 'Audio file, title, and user ID are required');
+//     }
+
+//     const mp3Buffer = await convertToMp3(file.buffer);
+//     const fileName = `${uuidv4()}.mp3`;
+
+//     const { data, error: uploadError } = await supabase.storage
+//       .from('recordings')
+//       .upload(fileName, mp3Buffer, {
+//         contentType: 'audio/mpeg',
+//       });
+
+//     if (uploadError) {
+//       return sendResponse(res, false, 500, 'Upload failed', { error: uploadError.message });
+//     }
+
+//     const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/recordings/${fileName}`;
+
+//     const { error: insertError } = await supabase
+//       .from('audios')
+//       .insert([{ title, url: publicUrl, user_id }]); // ✅ store user_id also
+
+//     if (insertError) {
+//       return sendResponse(res, false, 500, 'Metadata save failed', { error: insertError.message });
+//     }
+
+//     return sendResponse(res, true, 200, 'Audio uploaded successfully', {
+//       title,
+//       url: publicUrl,
+//       user_id, // ✅ optional: return it back to frontend too
+//     });
+//   } catch (err) {
+//     return sendResponse(res, false, 500, 'Internal server error', { error: err.message });
+//   }
+// };
+
+
+// // Download audio
+// export const downloadAudio = async (req, res) => {
+//   const { filename } = req.params;
+
+//   try {
+//     const downloadUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/recordings/${filename}`;
+//     const response = await axios.get(downloadUrl, { responseType: 'stream' });
+
+//     const fileBaseName = path.parse(filename).name;
+//     const forcedFileName = `${fileBaseName}.mp3`;
+
+//     res.setHeader('Content-Type', 'audio/mpeg');
+//     res.setHeader('Content-Disposition', `attachment; filename="${forcedFileName}"`);
+//     return response.data.pipe(res);
+//   } catch (error) {
+//     return sendResponse(res, false, 500, 'Failed to download audio', {
+//       error: error.message,
+//     });
+//   }
+// };
 export const saveAudio = async (req, res) => {
   try {
     const { file } = req;
-    const { title, user_id } = req.body; // ✅ also get user_id from frontend
-    console.log("Request Body::::::::::::", req.body);
+    const { title, user_id } = req.body;
 
+    console.log("==> Received saveAudio request");
+    console.log("Title:", title);
+    console.log("User ID:", user_id);
+    console.log("File Info:", file?.originalname, file?.mimetype, file?.size);
 
     if (!file || !title || !user_id) {
+      console.log("❌ Missing required fields");
       return sendResponse(res, false, 400, 'Audio file, title, and user ID are required');
     }
 
     const mp3Buffer = await convertToMp3(file.buffer);
+    console.log("✅ Audio converted to mp3 buffer");
+
     const fileName = `${uuidv4()}.mp3`;
+    console.log("Generated filename:", fileName);
 
     const { data, error: uploadError } = await supabase.storage
       .from('recordings')
@@ -286,47 +358,31 @@ export const saveAudio = async (req, res) => {
       });
 
     if (uploadError) {
+      console.log("❌ Upload error:", uploadError.message);
       return sendResponse(res, false, 500, 'Upload failed', { error: uploadError.message });
     }
 
     const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/recordings/${fileName}`;
+    console.log("✅ File uploaded. Public URL:", publicUrl);
 
     const { error: insertError } = await supabase
       .from('audios')
-      .insert([{ title, url: publicUrl, user_id }]); // ✅ store user_id also
+      .insert([{ title, url: publicUrl, user_id }]);
 
     if (insertError) {
+      console.log("❌ Insert error:", insertError.message);
       return sendResponse(res, false, 500, 'Metadata save failed', { error: insertError.message });
     }
+
+    console.log("✅ Audio metadata saved to Supabase");
 
     return sendResponse(res, true, 200, 'Audio uploaded successfully', {
       title,
       url: publicUrl,
-      user_id, // ✅ optional: return it back to frontend too
+      user_id,
     });
   } catch (err) {
+    console.error("🔥 saveAudio catch block error:", err);
     return sendResponse(res, false, 500, 'Internal server error', { error: err.message });
-  }
-};
-
-
-// Download audio
-export const downloadAudio = async (req, res) => {
-  const { filename } = req.params;
-
-  try {
-    const downloadUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/recordings/${filename}`;
-    const response = await axios.get(downloadUrl, { responseType: 'stream' });
-
-    const fileBaseName = path.parse(filename).name;
-    const forcedFileName = `${fileBaseName}.mp3`;
-
-    res.setHeader('Content-Type', 'audio/mpeg');
-    res.setHeader('Content-Disposition', `attachment; filename="${forcedFileName}"`);
-    return response.data.pipe(res);
-  } catch (error) {
-    return sendResponse(res, false, 500, 'Failed to download audio', {
-      error: error.message,
-    });
   }
 };
