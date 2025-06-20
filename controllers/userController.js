@@ -22,7 +22,7 @@ export const signUpUser = async (req, res) => {
 
     return sendResponse(res, true, 200, "User signed up successfully", { user: data.user });
   } catch (err) {
-    return sendResponse(res, false, 500, "Server error");
+    return sendResponse(res, false, 500, "Server error",err);
   }
 };
 
