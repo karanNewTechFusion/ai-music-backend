@@ -386,3 +386,26 @@ export const saveAudio = async (req, res) => {
     return sendResponse(res, false, 500, 'Internal server error', { error: err.message });
   }
 };
+
+
+// ✅ Enable this part
+export const downloadAudio = async (req, res) => {
+  const { filename } = req.params;
+
+  try {
+    const downloadUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/recordings/${filename}`;
+    const response = await axios.get(downloadUrl, { responseType: 'stream' });
+
+    const fileBaseName = path.parse(filename).name;
+    const forcedFileName = `${fileBaseName}.mp3`;
+
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Content-Disposition', `attachment; filename="${forcedFileName}"`);
+    return response.data.pipe(res);
+  } catch (error) {
+    return sendResponse(res, false, 500, 'Failed to download audio', {
+      error: error.message,
+    });
+  }
+};
+
