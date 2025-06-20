@@ -269,6 +269,8 @@ export const saveAudio = async (req, res) => {
   try {
     const { file } = req;
     const { title, user_id } = req.body; // ✅ also get user_id from frontend
+    console.log("Request Body:", req.body);
+
 
     if (!file || !title || !user_id) {
       return sendResponse(res, false, 400, 'Audio file, title, and user ID are required');
