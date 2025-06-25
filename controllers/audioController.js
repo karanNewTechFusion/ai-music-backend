@@ -9,9 +9,10 @@ import { AMDF } from "pitchfinder";
 import { std } from "mathjs";
 import { sendResponse } from "../utility/responseHelper.js";
 import dotenv from "dotenv";
-import Audio from "../models/AudioModel.js";
+import Audio from "../models/Audio.js";
 import { uploadFileToStorage } from "../utility/storageHelper.js";
-
+import { generateSingingFeedback } from "../utility/aiFeedbackHelper.js";
+import { generateFeedbackTTS } from "../utility/generateTTS.js"; // adjust path if needed
 dotenv.config();
 
 // Setup
@@ -146,7 +147,40 @@ export const finalizeAndSaveAudio = async (req, res) => {
 
 
 
-// 🔍 Temporary audio analysis API – No save, only analysis
+// // 🔍 Temporary audio analysis API – No save, only analysis
+// export const analyzeTempAudio = async (req, res) => {
+//   try {
+//     const { file } = req;
+
+//     if (!file) {
+//       return sendResponse(res, false, 400, "Audio file is required");
+//     }
+
+//     const mp3Buffer = await convertToMp3(file.buffer);
+//     const wavBuffer = await convertToWav(mp3Buffer);
+//     const pitches = await decodePitch(wavBuffer);
+//     const stability = std(pitches);
+//     const projection = await extractRMS(mp3Buffer);
+
+//     // 🧠 Add OpenAI feedback here (stubbed for now)
+//     const aiFeedback = `Your pitch is ${Math.round(stability)} stable. Try articulating clearer.`
+
+//     return sendResponse(res, true, 200, "Temporary analysis completed", {
+//       pitchData: pitches.slice(0, 100),
+//       stability,
+//       projection,
+//       aiFeedback,
+//       previewAudio: mp3Buffer.toString('base64'), // Optional: send preview for client-side audio playback
+//     });
+//   } catch (err) {
+//     console.error("❌ Temp audio analysis failed:", err);
+//     return sendResponse(res, false, 500, "Internal error", { error: err.message });
+//   }
+// };
+
+
+
+
 export const analyzeTempAudio = async (req, res) => {
   try {
     const { file } = req;
@@ -161,15 +195,25 @@ export const analyzeTempAudio = async (req, res) => {
     const stability = std(pitches);
     const projection = await extractRMS(mp3Buffer);
 
-    // 🧠 Add OpenAI feedback here (stubbed for now)
-    const aiFeedback = `Your pitch is ${Math.round(stability)} stable. Try articulating clearer.`
+    // 🌟 Generate AI feedback
+    const aiFeedback = await generateSingingFeedback(stability, projection);
+
+    // 🗣️ Convert feedback to voice
+    const ttsPath = await generateFeedbackTTS(aiFeedback, "feedback.mp3");
+
+    let feedbackAudioBase64 = null;
+    if (ttsPath && fs.existsSync(ttsPath)) {
+      const voiceBuffer = fs.readFileSync(ttsPath);
+      feedbackAudioBase64 = voiceBuffer.toString("base64");
+    }
 
     return sendResponse(res, true, 200, "Temporary analysis completed", {
       pitchData: pitches.slice(0, 100),
       stability,
       projection,
       aiFeedback,
-      previewAudio: mp3Buffer.toString('base64'), // Optional: send preview for client-side audio playback
+      previewAudio: mp3Buffer.toString("base64"), // Optional: user playback
+      voiceFeedback: feedbackAudioBase64, // 👈 Base64 TTS audio
     });
   } catch (err) {
     console.error("❌ Temp audio analysis failed:", err);

@@ -1,7 +1,7 @@
 import express from "express";
 import {
-  saveAudio,
-  analyzeTempAudio,         // 👈 New controller
+  
+  analyzeTempAudio,         finalizeAndSaveAudio,         // 👈 New controller
   uploadAudioMiddleware,
 } from "../controllers/audioController.js";
 
@@ -11,6 +11,6 @@ const router = express.Router();
 router.post("/analyze-temp", uploadAudioMiddleware, analyzeTempAudio);
 
 // 💾 Step 2: Save only after user agrees
-router.post("/save", uploadAudioMiddleware, saveAudio);
+router.post("/save", uploadAudioMiddleware, finalizeAndSaveAudio);
 
 export default router;
