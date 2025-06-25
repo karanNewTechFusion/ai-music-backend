@@ -1,13 +1,16 @@
-// import express from "express";
-// import {
-//   saveAudio,
-//   uploadAudioMiddleware,
-//   // downloadAudio,
-// } from "../controllers/audioController.js";
+import express from "express";
+import {
+  saveAudio,
+  analyzeTempAudio,         // 👈 New controller
+  uploadAudioMiddleware,
+} from "../controllers/audioController.js";
 
-// const router = express.Router();
+const router = express.Router();
 
-// router.post("/save", uploadAudioMiddleware, saveAudio);
-// // router.get("/download/:filename", downloadAudio); 
+// 🔄 Step 1: Temporary analysis (used before saving)
+router.post("/analyze-temp", uploadAudioMiddleware, analyzeTempAudio);
 
-// export default router;
+// 💾 Step 2: Save only after user agrees
+router.post("/save", uploadAudioMiddleware, saveAudio);
+
+export default router;

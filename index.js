@@ -24,11 +24,7 @@ app.get("/", (req, res) => {
   res.json({ message: "API working ✅" });
 });
 app.use("/api/users", userRoutes);
-// app.use("/audio", audioRoutes);
 
-// app.listen(PORT, () => {
-//   console.log(`Server running on port ................... ${PORT}`);
-// });
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
